@@ -58,6 +58,24 @@
   box-shadow: 0 16px 44px -10px rgba(168, 85, 247, 0.38);
 }
 
+@keyframes laser-scan {
+  0% {
+    top: 4%;
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  100% {
+    top: 94%;
+    opacity: 0.2;
+  }
+}
+
+.animate-laser-scan {
+  animation: laser-scan 3.4s ease-in-out infinite alternate;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
