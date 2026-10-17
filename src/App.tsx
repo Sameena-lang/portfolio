@@ -81,14 +81,15 @@ export default function App() {
   const [backdropPhoto, setBackdropPhoto] = useState<string>(() => {
     try {
       localStorage.removeItem('sameena_backdrop_portrait');
-      return localStorage.getItem('sameena_backdrop_portrait_purple_v2') || defaultBackdropPortrait;
+      localStorage.removeItem('sameena_backdrop_portrait_purple_v2');
+      return localStorage.getItem('sameena_backdrop_portrait_purple_v3') || defaultBackdropPortrait;
     } catch {
       return defaultBackdropPortrait;
     }
   });
   const [isCustomBackdrop, setIsCustomBackdrop] = useState<boolean>(() => {
     try {
-      return Boolean(localStorage.getItem('sameena_backdrop_portrait_purple_v2'));
+      return Boolean(localStorage.getItem('sameena_backdrop_portrait_purple_v3'));
     } catch {
       return false;
     }
@@ -265,7 +266,7 @@ export default function App() {
     setBackdropPhoto(dataUrl);
     setIsCustomBackdrop(true);
     try {
-      localStorage.setItem('sameena_backdrop_portrait_purple_v2', dataUrl);
+      localStorage.setItem('sameena_backdrop_portrait_purple_v3', dataUrl);
     } catch {
       // ignore quota errors
     }
@@ -287,7 +288,7 @@ export default function App() {
     setBackdropPhoto(defaultBackdropPortrait);
     setIsCustomBackdrop(false);
     try {
-      localStorage.removeItem('sameena_backdrop_portrait_purple_v2');
+      localStorage.removeItem('sameena_backdrop_portrait_purple_v3');
     } catch {
       // ignore
     }

@@ -338,8 +338,8 @@ export const FEATURED_PROJECTS: ProjectItem[] = [
 
 export const EXPERIENCE_TIMELINE: ExperienceItem[] = [
   {
-    id: 'tenam-software',
-    company: 'Tenam Software Solutions',
+    id: 'thenam-software',
+    company: 'Thenam Software Solutions',
     period: 'June 2026 — Present',
     role: 'Software Engineering & Analysis Intern',
     areas: ['Business Analysis', 'Software Testing', 'Software Development', 'SEO Analysis'],
@@ -347,8 +347,8 @@ export const EXPERIENCE_TIMELINE: ExperienceItem[] = [
       'Contributing across the software delivery lifecycle including business requirements analysis, quality assurance and software testing, application development, and technical SEO analysis.',
   },
   {
-    id: 'paper-heroes',
-    company: 'Paper Heroes',
+    id: 'paper-heros',
+    company: 'Paper Heros',
     period: 'July 2026 — August 2026',
     role: 'Research and Development (R&D)',
     areas: ['Research and Development (R&D)'],
@@ -414,12 +414,12 @@ export const ACHIEVEMENTS_AND_CERTS: AchievementItem[] = [
       'Completed one-month Artificial Intelligence and Machine Learning internship program at Vulture Lines.',
   },
   {
-    id: 'tenam-internship-cert',
+    id: 'thenam-internship-cert',
     title: 'Software Development, Testing, BA & SEO Internship',
-    organization: 'Tenam Software Solutions',
+    organization: 'Thenam Software Solutions',
     date: 'June 2026 — Present',
     type: 'Internship Credential',
     details:
-      'Ongoing multi-disciplinary internship spanning Business Analysis, Software Testing, Software Development, and SEO Analysis at Tenam Software Solutions.',
+      'Ongoing multi-disciplinary internship spanning Business Analysis, Software Testing, Software Development, and SEO Analysis at Thenam Software Solutions.',
   },
 ];

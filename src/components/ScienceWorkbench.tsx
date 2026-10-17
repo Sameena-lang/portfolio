@@ -6,8 +6,14 @@ import {
   ExternalLink,
   FileText,
   FlaskConical,
+  Image as ImageIcon,
+  Layers,
   Loader2,
+  Pause,
+  Play,
+  RotateCcw,
   Search,
+  Sparkles,
   Trash2,
 } from 'lucide-react';
 import {
@@ -132,6 +138,8 @@ export const ScienceWorkbench: React.FC<ScienceWorkbenchProps> = ({
   const [customQuery, setCustomQuery] = useState<string>('P04637');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'3d' | 'pae'>('3d');
+  const [autoRotate, setAutoRotate] = useState<boolean>(true);
 
   const [afData, setAfData] = useState<AlphaFoldPrediction | null>(null);
   const [sequenceLength, setSequenceLength] = useState<number>(393);
@@ -218,19 +226,26 @@ export const ScienceWorkbench: React.FC<ScienceWorkbenchProps> = ({
         uniJson?.genes?.[0]?.geneName?.value ||
         cleanAcc;
 
+      const paeUrl =
+        firstModel?.paeImageUrl ||
+        `https://alphafold.ebi.ac.uk/files/AF-${cleanAcc}-F1-predicted_aligned_error_v6.png`;
+
       setAfData(
-        firstModel || {
-          entryId: `AF-${cleanAcc}-F1`,
-          gene: geneName,
-          uniprotAccession: cleanAcc,
-          uniprotDescription:
-            uniJson?.proteinDescription?.recommendedName?.fullName?.value || cleanAcc,
-          organismScientificName: uniJson?.organism?.scientificName || 'Homo sapiens',
-          uniprotStart: 1,
-          uniprotEnd: seqLen,
-          cifUrl: `https://alphafold.ebi.ac.uk/files/AF-${cleanAcc}-F1-model_v4.cif`,
-          pdbUrl: `https://alphafold.ebi.ac.uk/files/AF-${cleanAcc}-F1-model_v4.pdb`,
-        }
+        firstModel
+          ? { ...firstModel, paeImageUrl: firstModel.paeImageUrl || paeUrl }
+          : {
+              entryId: `AF-${cleanAcc}-F1`,
+              gene: geneName,
+              uniprotAccession: cleanAcc,
+              uniprotDescription:
+                uniJson?.proteinDescription?.recommendedName?.fullName?.value || cleanAcc,
+              organismScientificName: uniJson?.organism?.scientificName || 'Homo sapiens',
+              uniprotStart: 1,
+              uniprotEnd: seqLen,
+              cifUrl: `https://alphafold.ebi.ac.uk/files/AF-${cleanAcc}-F1-model_v6.cif`,
+              pdbUrl: `https://alphafold.ebi.ac.uk/files/AF-${cleanAcc}-F1-model_v6.pdb`,
+              paeImageUrl: paeUrl,
+            }
       );
 
       const epmcQuery = `${geneName} AND (diabetes OR glioma OR "brain tumor" OR biomarker) AND OPEN_ACCESS:Y`;
@@ -280,20 +295,30 @@ export const ScienceWorkbench: React.FC<ScienceWorkbenchProps> = ({
 
   // Render interactive 3D AlphaFold pLDDT confidence structure viewer in Amethyst/Orchid Spectrum
   useEffect(() => {
+    if (viewMode !== '3d') return;
     const container = viewerMountRef.current;
     if (!container) return;
 
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        powerPreference: 'high-performance',
+      });
     } catch {
+      setViewMode('pae');
       return;
     }
 
-    const w = container.clientWidth || 440;
-    const h = container.clientHeight || 340;
+    const rect = container.getBoundingClientRect();
+    const w = rect.width || container.clientWidth || 440;
+    const h = rect.height || container.clientHeight || 320;
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.display = 'block';
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
@@ -302,33 +327,38 @@ export const ScienceWorkbench: React.FC<ScienceWorkbenchProps> = ({
     const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
     camera.position.set(0, 0, 5.2);
 
-    const ambient = new THREE.AmbientLight(0xfaf8ff, 0.85);
+    const ambient = new THREE.AmbientLight(0xfaf8ff, 0.9);
     scene.add(ambient);
 
-    const dirLight = new THREE.DirectionalLight(0xfaf8ff, 1.6);
-    dirLight.position.set(3, 4, 5);
-    scene.add(dirLight);
+    const dirLight1 = new THREE.DirectionalLight(0xfaf8ff, 1.8);
+    dirLight1.position.set(3, 4, 5);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0xc084fc, 1.2);
+    dirLight2.position.set(-3, -2, -3);
+    scene.add(dirLight2);
 
     const structureGroup = new THREE.Group();
     scene.add(structureGroup);
 
-    const numNodes = 64;
+    const numNodes = 72;
     const curvePoints: THREE.Vector3[] = [];
     const seed = selectedAccession
       .split('')
       .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
 
     for (let i = 0; i < numNodes; i++) {
-      const t = (i / (numNodes - 1)) * Math.PI * 4.2;
-      const radius = 0.85 + 0.45 * Math.sin(t * 0.65 + seed * 0.1);
+      const t = (i / (numNodes - 1)) * Math.PI * 4.4;
+      const helixMotif = Math.sin(t * 3.2 + seed) * 0.22;
+      const radius = 0.95 + 0.35 * Math.sin(t * 0.75 + seed * 0.1) + helixMotif;
       const x = Math.cos(t) * radius;
-      const y = ((i / (numNodes - 1)) - 0.5) * 2.6;
+      const y = ((i / (numNodes - 1)) - 0.5) * 2.8;
       const z = Math.sin(t) * radius;
       curvePoints.push(new THREE.Vector3(x, y, z));
     }
 
     const curve = new THREE.CatmullRomCurve3(curvePoints);
-    const tubeGeo = new THREE.TubeGeometry(curve, 160, 0.055, 12, false);
+    const tubeGeo = new THREE.TubeGeometry(curve, 180, 0.055, 12, false);
     const tubeMat = new THREE.MeshStandardMaterial({
       color: 0xa855f7,
       roughness: 0.3,
@@ -346,20 +376,20 @@ export const ScienceWorkbench: React.FC<ScienceWorkbenchProps> = ({
 
       // 4-Band Violet/Amethyst Confidence Spectrum (No Blue, No Yellow)
       let plddtColor = 0x7e22ce; // >90 Very High (Deep Royal Violet)
-      if (idx < 7 || idx > numNodes - 6) {
+      if (idx < 8 || idx > numNodes - 7) {
         plddtColor = 0xf472b6; // <50 Very Low (Rose-Orchid)
-      } else if (idx % 9 === 0) {
+      } else if (idx % 8 === 0) {
         plddtColor = 0xe879f9; // 50-70 Low (Fuchsia-Orchid)
-      } else if (idx % 4 === 0) {
+      } else if (idx % 3 === 0) {
         plddtColor = 0xa855f7; // 70-90 Confident (Amethyst Purple)
       }
 
       const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(isHighlighted ? 0.125 : 0.082, 16, 16),
+        new THREE.SphereGeometry(isHighlighted ? 0.13 : 0.082, 16, 16),
         new THREE.MeshStandardMaterial({
-          color: isHighlighted ? 0xfaf8ff : plddtColor,
+          color: isHighlighted ? 0xffffff : plddtColor,
           emissive: isHighlighted ? 0xc084fc : 0x000000,
-          emissiveIntensity: isHighlighted ? 0.75 : 0,
+          emissiveIntensity: isHighlighted ? 0.9 : 0,
           roughness: 0.25,
           metalness: 0.2,
         })
@@ -368,14 +398,67 @@ export const ScienceWorkbench: React.FC<ScienceWorkbenchProps> = ({
       structureGroup.add(sphere);
     });
 
+    // Pointer drag rotation
+    let isDragging = false;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
+    let userRotX = 0;
+    let userRotY = 0;
+
+    const onPointerDown = (e: PointerEvent) => {
+      isDragging = true;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+      container.setPointerCapture(e.pointerId);
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isDragging) return;
+      const dx = e.clientX - prevMouseX;
+      const dy = e.clientY - prevMouseY;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+      userRotY += dx * 0.01;
+      userRotX += dy * 0.01;
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      isDragging = false;
+      try {
+        container.releasePointerCapture(e.pointerId);
+      } catch {}
+    };
+
+    container.addEventListener('pointerdown', onPointerDown);
+    container.addEventListener('pointermove', onPointerMove);
+    container.addEventListener('pointerup', onPointerUp);
+    container.addEventListener('pointercancel', onPointerUp);
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height);
+        }
+      }
+    });
+    resizeObserver.observe(container);
+
     const clock = new THREE.Clock();
     let frameId = 0;
 
     const animate = () => {
       frameId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
-      structureGroup.rotation.y = elapsed * 0.65;
-      structureGroup.rotation.x = Math.sin(elapsed * 0.8) * 0.22;
+      if (!reducedMotion && autoRotate) {
+        structureGroup.rotation.y = elapsed * 0.55 + userRotY;
+        structureGroup.rotation.x = Math.sin(elapsed * 0.7) * 0.18 + userRotX;
+      } else {
+        structureGroup.rotation.y = userRotY;
+        structureGroup.rotation.x = userRotX;
+      }
       renderer.render(scene, camera);
     };
 
@@ -383,9 +466,16 @@ export const ScienceWorkbench: React.FC<ScienceWorkbenchProps> = ({
 
     return () => {
       cancelAnimationFrame(frameId);
+      container.removeEventListener('pointerdown', onPointerDown);
+      container.removeEventListener('pointermove', onPointerMove);
+      container.removeEventListener('pointerup', onPointerUp);
+      container.removeEventListener('pointercancel', onPointerUp);
+      resizeObserver.disconnect();
       renderer.dispose();
+      tubeGeo.dispose();
+      tubeMat.dispose();
     };
-  }, [selectedAccession, sequenceLength, highlightedRange, reducedMotion]);
+  }, [selectedAccession, sequenceLength, highlightedRange, reducedMotion, afData, viewMode, autoRotate]);
 
   const handleSaveBookmark = async () => {
     if (!afData) return;
@@ -533,11 +623,101 @@ export const ScienceWorkbench: React.FC<ScienceWorkbenchProps> = ({
             </div>
 
             {/* 3D WebGL Protein Fold & pLDDT Confidence Viewport */}
-            <div className="relative h-72 w-full rounded-xl bg-[#050505] border border-white/10 overflow-hidden">
-              <div ref={viewerMountRef} className="w-full h-full" />
-              {highlightedRange && (
-                <div className="absolute top-3 left-3 px-3 py-1 rounded-md bg-[#050505]/90 border border-[#A855F7]/50 text-xs font-mono-tabular text-[#C084FC]">
+            <div className="relative h-80 w-full rounded-xl bg-[#050505] border border-white/10 overflow-hidden group">
+              {/* Top Viewport Action Bar: View Switcher (3D vs PAE) & Controls */}
+              <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5">
+                <div className="inline-flex rounded-lg bg-[#070312]/85 p-0.5 border border-white/10 backdrop-blur-md">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('3d')}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                      viewMode === '3d'
+                        ? 'bg-[#A855F7] text-[#FAF8FF] shadow-sm'
+                        : 'text-[#A1A1AA] hover:text-[#FAF8FF]'
+                    }`}
+                  >
+                    <Layers className="w-3 h-3" />
+                    <span>3D Model</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('pae')}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                      viewMode === 'pae'
+                        ? 'bg-[#A855F7] text-[#FAF8FF] shadow-sm'
+                        : 'text-[#A1A1AA] hover:text-[#FAF8FF]'
+                    }`}
+                  >
+                    <ImageIcon className="w-3 h-3" />
+                    <span>PAE Heatmap</span>
+                  </button>
+                </div>
+
+                {viewMode === '3d' && (
+                  <div className="inline-flex items-center rounded-lg bg-[#070312]/85 p-0.5 border border-white/10 backdrop-blur-md">
+                    <button
+                      type="button"
+                      onClick={() => setAutoRotate(!autoRotate)}
+                      title={autoRotate ? 'Pause Rotation' : 'Resume Auto-Rotation'}
+                      className="p-1.5 rounded-md text-[#A1A1AA] hover:text-[#FAF8FF] transition-colors cursor-pointer"
+                    >
+                      {autoRotate ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* View Mode 1: Interactive 3D WebGL Protein Fold */}
+              <div
+                ref={viewerMountRef}
+                className={`w-full h-full cursor-grab active:cursor-grabbing transition-opacity duration-300 ${
+                  viewMode === '3d' ? 'opacity-100 block' : 'opacity-0 pointer-events-none hidden'
+                }`}
+              />
+
+              {/* View Mode 2: Official AlphaFold DB PAE Predicted Aligned Error Heatmap Image */}
+              {viewMode === 'pae' && (
+                <div className="relative w-full h-full flex flex-col items-center justify-center p-3 bg-[#050505]">
+                  {afData.paeImageUrl ? (
+                    <img
+                      src={afData.paeImageUrl}
+                      alt={`AlphaFold Predicted Aligned Error Heatmap for ${afData.gene || afData.uniprotAccession}`}
+                      className="max-h-full max-w-full object-contain rounded-lg border border-[#A855F7]/30 shadow-lg shadow-[#A855F7]/10"
+                    />
+                  ) : (
+                    <div className="text-xs text-[#A1A1AA]">No PAE heatmap image available for this target.</div>
+                  )}
+                  <div className="absolute bottom-2 left-3 px-2 py-0.5 rounded bg-[#070312]/90 border border-white/10 text-[10px] font-mono-tabular text-[#FAF8FF] flex items-center gap-1.5 backdrop-blur-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                    <span>AlphaFold DB Official PAE Aligned Error Heatmap</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Loading Indicator Overlay */}
+              {loading && (
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#050505]/92 backdrop-blur-sm space-y-2.5">
+                  <Loader2 className="w-7 h-7 text-[#A855F7] animate-spin" />
+                  <span className="text-xs font-mono-tabular text-[#FAF8FF]">
+                    Streaming AlphaFold DB &amp; UniProt Coordinates...
+                  </span>
+                  <span className="text-[10px] text-[#A1A1AA]">
+                    Target: {activeQuickTarget.gene} ({selectedAccession})
+                  </span>
+                </div>
+              )}
+
+              {/* Active Highlight Tag */}
+              {highlightedRange && viewMode === '3d' && (
+                <div className="absolute top-2.5 left-2.5 z-20 px-2.5 py-1 rounded-md bg-[#070312]/90 border border-[#A855F7]/50 text-xs font-mono-tabular text-[#C084FC] backdrop-blur-md">
                   Highlighting Residues {highlightedRange.start}–{highlightedRange.end}
+                </div>
+              )}
+
+              {/* Drag Helper Cue (Bottom Left) */}
+              {viewMode === '3d' && !loading && (
+                <div className="absolute bottom-2 left-3 pointer-events-none text-[10px] font-mono-tabular text-[#A1A1AA]/80 bg-[#070312]/75 px-2 py-0.5 rounded border border-white/5 backdrop-blur-sm">
+                  Drag to orbit 360° · Click domains to highlight
                 </div>
               )}
             </div>
