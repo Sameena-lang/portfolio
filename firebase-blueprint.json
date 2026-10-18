@@ -1,0 +1,127 @@
+{
+  "entities": {
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "A collaboration or recruitment inquiry submitted by an authenticated visitor.",
+      "type": "object",
+      "properties": {
+        "authorUid": {
+          "type": "string",
+          "description": "The Firebase Auth UID of the sender.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Display name of the sender.",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject of the inquiry.",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "message": {
+          "type": "string",
+          "description": "Detailed message body.",
+          "minLength": 10,
+          "maxLength": 2000
+        },
+        "status": {
+          "type": "string",
+          "description": "Workflow state of the inquiry.",
+          "enum": ["submitted", "archived"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the inquiry was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the inquiry was last updated."
+        }
+      },
+      "required": ["authorUid", "authorName", "subject", "message", "status", "createdAt", "updatedAt"]
+    },
+    "SavedResearch": {
+      "title": "SavedResearch",
+      "description": "A saved protein target or biomedical literature bookmark in the user's Science Workbench notebook.",
+      "type": "object",
+      "properties": {
+        "ownerUid": {
+          "type": "string",
+          "description": "The Firebase Auth UID of the researcher who saved this item.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "uniprotAccession": {
+          "type": "string",
+          "description": "UniProtKB accession ID (e.g., P01308, P04637).",
+          "minLength": 4,
+          "maxLength": 20,
+          "pattern": "^[A-Z0-9_\\-]+$"
+        },
+        "geneSymbol": {
+          "type": "string",
+          "description": "Official gene symbol (e.g., INS, TP53, EGFR).",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "proteinName": {
+          "type": "string",
+          "description": "Full protein title from UniProtKB/AlphaFold DB.",
+          "minLength": 2,
+          "maxLength": 240
+        },
+        "projectContext": {
+          "type": "string",
+          "description": "Related portfolio project domain (e.g., Diabetes Prediction System or Brain Tumor MRI).",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "notes": {
+          "type": "string",
+          "description": "User annotation or clinical hypothesis note.",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the bookmark was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the bookmark was updated."
+        }
+      },
+      "required": [
+        "ownerUid",
+        "uniprotAccession",
+        "geneSymbol",
+        "proteinName",
+        "projectContext",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/inquiries/{inquiryId}": {
+      "schema": { "$ref": "#/entities/Inquiry" },
+      "description": "Stores authenticated visitor inquiries with strict owner and admin read/write isolation."
+    },
+    "/savedResearch/{recordId}": {
+      "schema": { "$ref": "#/entities/SavedResearch" },
+      "description": "Stores personal bioinformatics and literature notes per authenticated user."
+    }
+  }
+}

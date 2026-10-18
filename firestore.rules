@@ -1,0 +1,140 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable Hardened Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'sameenap203@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation Blueprint: Inquiry
+    function isValidInquiry(data) {
+      return data.keys().hasAll(['authorUid', 'authorName', 'subject', 'message', 'status', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['authorUid', 'authorName', 'subject', 'message', 'status', 'createdAt', 'updatedAt']) &&
+        data.authorUid is string &&
+        data.authorUid.size() >= 1 &&
+        data.authorUid.size() <= 128 &&
+        data.authorUid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.authorUid == request.auth.uid &&
+        data.authorName is string &&
+        data.authorName.size() >= 2 &&
+        data.authorName.size() <= 100 &&
+        data.subject is string &&
+        data.subject.size() >= 3 &&
+        data.subject.size() <= 160 &&
+        data.message is string &&
+        data.message.size() >= 10 &&
+        data.message.size() <= 2000 &&
+        data.status is string &&
+        (data.status == 'submitted' || data.status == 'archived') &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // Validation Blueprint: SavedResearch
+    function isValidSavedResearch(data) {
+      return data.keys().hasAll(['ownerUid', 'uniprotAccession', 'geneSymbol', 'proteinName', 'projectContext', 'notes', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['ownerUid', 'uniprotAccession', 'geneSymbol', 'proteinName', 'projectContext', 'notes', 'createdAt', 'updatedAt']) &&
+        data.ownerUid is string &&
+        data.ownerUid.size() >= 1 &&
+        data.ownerUid.size() <= 128 &&
+        data.ownerUid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerUid == request.auth.uid &&
+        data.uniprotAccession is string &&
+        data.uniprotAccession.size() >= 4 &&
+        data.uniprotAccession.size() <= 20 &&
+        data.uniprotAccession.matches('^[A-Z0-9_\\-]+$') &&
+        data.geneSymbol is string &&
+        data.geneSymbol.size() >= 1 &&
+        data.geneSymbol.size() <= 30 &&
+        data.proteinName is string &&
+        data.proteinName.size() >= 2 &&
+        data.proteinName.size() <= 240 &&
+        data.projectContext is string &&
+        data.projectContext.size() >= 2 &&
+        data.projectContext.size() <= 120 &&
+        data.notes is string &&
+        data.notes.size() >= 1 &&
+        data.notes.size() <= 1000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // Collection: /inquiries/{inquiryId}
+    match /inquiries/{inquiryId} {
+      allow get: if isVerifiedUser() && isValidId(inquiryId) && (existing().authorUid == request.auth.uid || isAdmin());
+      allow list: if isVerifiedUser() && (existing().authorUid == request.auth.uid || isAdmin());
+
+      allow create: if isVerifiedUser() &&
+        isValidId(inquiryId) &&
+        isValidInquiry(incoming()) &&
+        incoming().status == 'submitted' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser() &&
+        isValidId(inquiryId) &&
+        isValidInquiry(incoming()) &&
+        incoming().authorUid == existing().authorUid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && (
+          isAdmin() || (
+            existing().authorUid == request.auth.uid &&
+            existing().status != 'archived' &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['message', 'status', 'updatedAt'])
+          )
+        );
+
+      allow delete: if isVerifiedUser() && isValidId(inquiryId) && (existing().authorUid == request.auth.uid || isAdmin());
+    }
+
+    // Collection: /savedResearch/{recordId}
+    match /savedResearch/{recordId} {
+      allow get: if isVerifiedUser() && isValidId(recordId) && existing().ownerUid == request.auth.uid;
+      allow list: if isVerifiedUser() && existing().ownerUid == request.auth.uid;
+
+      allow create: if isVerifiedUser() &&
+        isValidId(recordId) &&
+        isValidSavedResearch(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser() &&
+        isValidId(recordId) &&
+        isValidSavedResearch(incoming()) &&
+        existing().ownerUid == request.auth.uid &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().uniprotAccession == existing().uniprotAccession &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['notes', 'projectContext', 'updatedAt']);
+
+      allow delete: if isVerifiedUser() && isValidId(recordId) && existing().ownerUid == request.auth.uid;
+    }
+  }
+}
