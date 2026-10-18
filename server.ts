@@ -210,6 +210,17 @@ async function startServer() {
 
   app.use(express.json({ limit: '2mb' }));
 
+  app.use((_req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    if (_req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+    next();
+  });
+
   // --- MULTI-TURN GEMINI CHATBOT ENDPOINT ---
   app.post('/api/gemini/chat', async (req, res) => {
     try {

@@ -109,7 +109,7 @@ export const GeminiChatbot: React.FC = () => {
         {
           id: `err_${Date.now()}`,
           role: 'model',
-          text: 'Network error while reaching the Gemini server endpoint.',
+          text: 'The server was momentarily reconnecting. Please send your message again or refresh the page.',
           modelUsed: selectedModel,
         },
       ]);
