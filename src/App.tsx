@@ -1378,35 +1378,54 @@ export default function App() {
                   {contactResult && (
                     <div
                       role="status"
-                      className={`p-4 rounded-xl border text-xs leading-relaxed space-y-2 ${
+                      className={`p-4 rounded-xl border text-xs leading-relaxed space-y-3 ${
                         contactResult.ok
                           ? 'bg-[#A855F7]/15 border-[#A855F7]/40 text-[#FAF8FF]'
                           : 'bg-rose-500/10 border-rose-500/40 text-rose-200'
                       }`}
                     >
-                      <div className="flex items-center gap-2 font-semibold">
+                      <div className="flex items-center gap-2 font-semibold text-sm">
                         <CheckCircle2 className="w-4 h-4 text-[#C084FC] shrink-0" />
                         <span>
                           {contactResult.ok
                             ? contactResult.dispatchedExternally
-                              ? 'Message Dispatched via Configured Email Service'
-                              : 'Inquiry Validated & Logged'
+                              ? 'Message Sent Successfully!'
+                              : 'Inquiry Saved & Ready to Send!'
                             : 'Submission Error'}
                         </span>
                       </div>
-                      <p className="text-[#A1A1AA]">{contactResult.notice}</p>
+                      <p className="text-[#A1A1AA]">
+                        {contactResult.ok && contactResult.dispatchedExternally
+                          ? `Your inquiry was delivered directly to ${PERSONAL_BRAND.email}. Sameena will get back to you shortly!`
+                          : `Your message has been safely recorded in Sameena's inquiry queue. Click below to deliver it directly to ${PERSONAL_BRAND.email}:`}
+                      </p>
                       {contactResult.ok && !contactResult.dispatchedExternally && (
-                        <div className="pt-1">
+                        <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                          <a
+                            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+                              PERSONAL_BRAND.email
+                            )}&su=${encodeURIComponent(
+                              `[Portfolio Inquiry] ${contactForm.subject}`
+                            )}&body=${encodeURIComponent(
+                              `Hello Sameena,\n\nFrom: ${contactForm.name} (${contactForm.email})\nSubject: ${contactForm.subject}\n\nMessage:\n${contactForm.message}\n`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-medium transition-all shadow-md text-xs"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>Send via Gmail in 1-Click</span>
+                          </a>
                           <a
                             href={`mailto:${PERSONAL_BRAND.email}?subject=${encodeURIComponent(
-                              contactForm.subject
+                              `[Portfolio Inquiry] ${contactForm.subject}`
                             )}&body=${encodeURIComponent(
                               `From: ${contactForm.name} (${contactForm.email})\n\n${contactForm.message}`
                             )}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#A855F7] text-[#FAF8FF] font-semibold hover:bg-[#9333EA] transition-colors"
+                            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#A855F7] hover:bg-[#9333EA] text-white font-medium transition-all shadow-md text-xs"
                           >
-                            <Mail className="w-3.5 h-3.5" />
-                            <span>Open in Default Email Client to Send Immediately</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Open Default Email App</span>
                           </a>
                         </div>
                       )}

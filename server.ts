@@ -388,7 +388,7 @@ async function startServer() {
         externalNotice ||
         (dispatchedExternally
           ? 'Email dispatched directly to sameena3437@gmail.com.'
-          : 'Saved to the portfolio server queue. External SMTP/Resend email relay is not configured in environment variables yet—use the direct email button below to launch your mail client immediately.'),
+          : 'Saved to the portfolio server queue.'),
     });
   });
 
