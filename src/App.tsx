@@ -15,8 +15,6 @@ import {
   Image as ImageIcon,
   Layers,
   Linkedin,
-  LogIn,
-  LogOut,
   Mail,
   MapPin,
   Menu,
@@ -520,28 +518,15 @@ export default function App() {
             })}
           </nav>
 
-          {/* Zone 3: 1 Primary Action (Google Auth / Connect) + Mobile Menu Trigger */}
+          {/* Zone 3: Direct Contact Action + Mobile Menu Trigger */}
           <div className="flex items-center gap-3 shrink-0">
-            {user ? (
-              <button
-                type="button"
-                onClick={signOutUser}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-[#A855F7]/40 text-xs font-semibold text-[#FAF8FF] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-                title={`Signed in as ${user.email}`}
-              >
-                <LogOut className="w-3.5 h-3.5 text-[#C084FC]" />
-                <span>Sign Out ({user.displayName?.split(' ')[0] || 'User'})</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={signInWithGoogle}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#A855F7] hover:bg-[#9333EA] text-xs font-semibold text-[#FAF8FF] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                <span>Sign In</span>
-              </button>
-            )}
+            <a
+              href="#contact"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#A855F7] hover:bg-[#9333EA] text-xs font-semibold text-[#FAF8FF] transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-lg shadow-[#A855F7]/20"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Let's Connect</span>
+            </a>
 
             <button
               type="button"
