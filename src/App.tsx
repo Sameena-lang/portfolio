@@ -29,6 +29,7 @@ import {
   X,
 } from 'lucide-react';
 import defaultBackdropPortrait from './assets/images/hero_purple_portrait_backdrop_1791738221468.jpg';
+import aiCollabWorkspace from './assets/images/ai_collaboration_workspace.jpg';
 import {
   ACHIEVEMENTS_AND_CERTS,
   EXPERIENCE_TIMELINE,
@@ -50,7 +51,6 @@ import {
   subscribeUserInquiries,
 } from './lib/firebase';
 import { HeroCharacter3D } from './components/HeroCharacter3D';
-import { ContactOrb3D } from './components/ContactOrb3D';
 import { MovingBackground3D } from './components/MovingBackground3D';
 import { ProjectCard3D } from './components/ProjectCard3D';
 import { ProjectDetailModal } from './components/ProjectDetailModal';
@@ -1150,7 +1150,28 @@ export default function App() {
                   </p>
                 </div>
 
-                <ContactOrb3D reducedMotion={reducedMotion} />
+                {/* High-Tech AI & Data Science Collaboration Showcase */}
+                <div className="relative w-full rounded-2xl border border-[#A855F7]/35 bg-gradient-to-b from-[#15092D]/85 to-[#070312]/90 backdrop-blur-xl overflow-hidden group shadow-xl shadow-[#9333EA]/20 transition-all hover:border-[#C084FC]/60">
+                  <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden">
+                    <img
+                      src={aiCollabWorkspace}
+                      alt="AI and Data Science Collaboration Workspace"
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#070312] via-transparent to-transparent opacity-80" />
+                    <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#070312]/85 backdrop-blur-md border border-[#A855F7]/50 text-[11px] font-mono-tabular text-[#E9D5FF] shadow-lg">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      Open for AI & Engineering Collabs
+                    </div>
+                  </div>
+                  <div className="p-3.5 flex items-center justify-between text-xs text-[#C4B5FD] border-t border-white/10 bg-[#0A041A]/70">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-3.5 h-3.5 text-[#C084FC]" />
+                      <span className="font-medium text-[#FAF8FF]">Neural Networks & Predictive AI</span>
+                    </div>
+                    <span className="font-mono-tabular text-[#A1A1AA]">Chennai, IN</span>
+                  </div>
+                </div>
 
                 <div className="p-6 rounded-2xl glass-panel space-y-4">
                   <div className="flex items-center gap-3.5">
